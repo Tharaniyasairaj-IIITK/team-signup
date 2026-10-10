@@ -39,7 +39,7 @@ button.p{background:var(--ac);color:#fff;border:0;font-weight:600}button:disable
 
 <script>
 // ===== CONFIG =====
-const ENDPOINT = "https://script.google.com/a/macros/iiitkottayam.ac.in/s/AKfycbz7AtIyWnSSeWJ2vcJOEc2taI5uOkSjUcLSK8Za3kbBn8TFnrLKenMK7R3j1FighO4-/exec";            // paste your Apps Script Web App URL here
+const ENDPOINT = "https://script.google.com/macros/s/AKfycbz7AtIyWnSSeWJ2vcJOEc2taI5uOkSjUcLSK8Za3kbBn8TFnrLKenMK7R3j1FighO4-/exec";            // paste your Apps Script Web App URL here
 const MIN = 1, MAX = 4;
 // ==================
 const $ = id => document.getElementById(id);
@@ -92,12 +92,13 @@ $('go').onclick=async()=>{
     if(!ENDPOINT){teams.push({title,names:members.map(m=>m.name),ids:members.map(m=>norm(m.id))});msg.textContent='Saved (demo only).';msg.className='good';render();}
     else{
       const r=await fetch(ENDPOINT,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({title,members})});
-      const j=await r.json();
+      const txt=await r.text();let j;
+      try{j=JSON.parse(txt);}catch(_){throw new Error('Backend did not return JSON. Check deployment access is "Anyone" and you used the /exec URL.');}
       if(j.ok){msg.textContent='🎉 Team registered!';msg.className='good';$('title').value='';$('members').innerHTML='';for(let i=0;i<MIN;i++)addRow();}
       else{msg.textContent=j.error;msg.className='bad';}
       await load();
     }
-  }catch(e){msg.textContent='Network error, try again.';msg.className='bad';}
+  }catch(e){msg.textContent=(e&&e.message&&!/fetch/i.test(e.message)?e.message:'Could not reach the backend (blocked, wrong URL or access not set to Anyone). Details: '+e);msg.className='bad';}
   $('go').disabled=false;
 };
 $('title').oninput=validate;$('add').onclick=addRow;
