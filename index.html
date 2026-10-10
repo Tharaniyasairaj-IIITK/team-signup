@@ -25,7 +25,7 @@ button.p{background:var(--ac);color:#fff;border:0;font-weight:600}button:disable
 
 <div class="card">
   <label for="title">Team title</label>
-  <input id="title" maxlength="80" placeholder="e.g. Quantum Quokkas" autocomplete="off">
+  <input id="title" maxlength="80" placeholder="e.g. Robust AI Systems for handling noisy data" autocomplete="off">
   <div class="hint" id="th"></div>
   <label>Members (name &amp; roll no. / student ID)</label>
   <div id="members"></div>
@@ -40,7 +40,7 @@ button.p{background:var(--ac);color:#fff;border:0;font-weight:600}button:disable
 <script>
 // ===== CONFIG =====
 const ENDPOINT = "https://script.google.com/a/macros/iiitkottayam.ac.in/s/AKfycbz7AtIyWnSSeWJ2vcJOEc2taI5uOkSjUcLSK8Za3kbBn8TFnrLKenMK7R3j1FighO4-/exec";            // paste your Apps Script Web App URL here
-const MIN = 2, MAX = 4;
+const MIN = 1, MAX = 4;
 // ==================
 const $ = id => document.getElementById(id);
 const norm = s => String(s||'').toLowerCase().replace(/\s+/g,' ').trim();
