@@ -10,24 +10,23 @@ main{max-width:720px;margin:0 auto;padding:24px 16px 48px}
 h1{font-size:1.5rem;margin:.2em 0}p.s{color:var(--mu);margin:0 0 20px}
 .card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:20px;margin-bottom:18px}
 label{display:block;font-weight:600;font-size:.9rem;margin:0 0 4px}
-input{width:100%;padding:10px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit}
-input:focus{outline:2px solid var(--ac);border-color:transparent}
-.row{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:start}
+select{width:100%;padding:10px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit}
+select:focus{outline:2px solid var(--ac);border-color:transparent}
+.row{display:grid;grid-template-columns:1fr auto;gap:8px;margin-bottom:8px}
 .hint{font-size:.82rem;min-height:1.2em;margin:4px 0 12px;color:var(--mu)}.bad{color:var(--er)}.good{color:var(--ok)}
 button{font:inherit;border-radius:8px;border:1px solid var(--bd);background:var(--card);color:var(--tx);padding:10px 14px;cursor:pointer}
 button.p{background:var(--ac);color:#fff;border:0;font-weight:600}button:disabled{opacity:.5;cursor:not-allowed}
 #msg{margin-top:12px;font-weight:600}
 .t{padding:8px 0;border-top:1px solid var(--bd)}.t:first-child{border-top:0}.t small{color:var(--mu);display:block}
-@media(max-width:520px){.row{grid-template-columns:1fr 1fr}.row button{grid-column:1/-1}}
 </style></head><body><main>
 <h1>Seminar Team Registration</h1>
-<p class="s">Pick a unique team title and your members. Each person can join only one team.</p>
+<p class="s">Choose a topic and your team members. Each topic can be taken by one team, and each student can join only one team. Taken topics and students disappear from the lists.</p>
 
 <div class="card">
-  <label for="title">Team title</label>
-  <input id="title" maxlength="80" placeholder="e.g. Robust AI Systems for handling noisy data" autocomplete="off">
+  <label for="title">Seminar topic (your team title)</label>
+  <select id="title"></select>
   <div class="hint" id="th"></div>
-  <label>Members (name &amp; roll no. / student ID)</label>
+  <label>Team members (1 to 4)</label>
   <div id="members"></div>
   <div class="hint" id="mh"></div>
   <button id="add" type="button">+ Add member</button>
@@ -39,69 +38,110 @@ button.p{background:var(--ac);color:#fff;border:0;font-weight:600}button:disable
 
 <script>
 // ===== CONFIG =====
-const ENDPOINT = "https://script.google.com/macros/s/AKfycbz7AtIyWnSSeWJ2vcJOEc2taI5uOkSjUcLSK8Za3kbBn8TFnrLKenMK7R3j1FighO4-/exec";            // paste your Apps Script Web App URL here
+const ENDPOINT = "https://script.google.com/macros/s/AKfycbz7AtIyWnSSeWJ2vcJOEc2taI5uOkSjUcLSK8Za3kbBn8TFnrLKenMK7R3j1FighO4-/exec";
 const MIN = 1, MAX = 4;
+const TOPICS = [
+ "From Machine Learning Model to AI-Enabled Application: Challenges in Transforming a Trained Model into a Usable System",
+ "Defining Success in AI Systems: Accuracy, Precision, Recall, Latency, Cost, and User Satisfaction",
+ "Beyond Accuracy: Evaluating AI Systems Using Reliability, Robustness, and Real-World Performance",
+ "Model Evaluation versus System Evaluation: Why High Benchmark Scores Do Not Guarantee Practical Success",
+ "Goal-Oriented AI System Design: Translating Business and User Requirements into Measurable AI Objectives",
+ "Rule-Based Systems versus Machine Learning: Comparing Their Strengths, Limitations, and Application Scenarios",
+ "Traditional Machine Learning versus Deep Learning: Trade-offs in Accuracy, Interpretability, Data Requirements, and Computation",
+ "Generative AI versus Predictive AI: Choosing the Appropriate Technique for Different Applications",
+ "Understanding and Managing AI Errors: False Positives, False Negatives, and Their Real-World Consequences",
+ "Robust AI Systems: Handling Noisy Data, Missing Values, Outliers, and Unexpected Inputs",
+ "Hallucinations in Large Language Models: Causes, Consequences, and Mitigation Strategies",
+ "Human Oversight in AI Decision-Making: When Should an AI System Defer to a Human?",
+ "Software Architecture of an AI-Enabled System: Integrating Data Pipelines, Models, APIs, Databases, and User Interfaces",
+ "Designing AI Systems Using Microservices: Advantages, Challenges, and Practical Use Cases",
+ "Retrieval-Augmented Generation (RAG) as an AI System Architecture: Combining Information Retrieval with Large Language Models",
+ "Edge AI versus Cloud AI: Trade-offs in Latency, Privacy, Cost, and Computational Resources",
+ "From Development to Production: The Role of MLOps in Deploying and Maintaining AI Systems",
+ "AI Model Monitoring and Drift Detection: Identifying Performance Degradation After Deployment",
+ "Continuous Integration and Continuous Deployment for AI Systems: Managing Model Updates and Versioning",
+ "Secure and Responsible Deployment of AI Applications: Addressing Privacy, Access Control, and Operational Risks",
+ "Domain-Specific AI versus General-Purpose AI: Why Specialized Systems May Outperform General Models in Particular Contexts",
+ "AI in Healthcare: Building Reliable Systems for Disease Screening and Clinical Decision Support",
+ "AI in Education: Intelligent Tutoring Systems, Automated Assessment, and Personalized Learning",
+ "AI for Smart Agriculture: Crop Disease Detection, Yield Prediction, and Precision Farming",
+ "Domain-Specific Large Language Models: Adapting AI Systems for Legal, Financial, Scientific, or Educational Applications",
+ "Algorithmic Bias in AI Systems: Sources of Bias in Data, Model Design, and Decision-Making",
+ "Building Fair AI: Fairness Metrics, Bias Mitigation Techniques, and the Trade-offs Between Fairness and Accuracy",
+ "Explainable AI (XAI): Comparing LIME, SHAP, Feature Importance, and Counterfactual Explanations",
+ "Interpretable Models versus Black-Box Models: Choosing Between Transparency and Predictive Performance",
+ "Human–AI Interaction and Trust: Designing AI Systems That Communicate Uncertainty, Support Human Decisions, and Allow Effective User Feedback"
+];
+const ROSTER = [{"id": "2026EMAI20001", "name": "Abel Raju"}, {"id": "2026PHD12001", "name": "Abhijith G"}, {"id": "2026EMAI20002", "name": "Abhijith S J"}, {"id": "2026EMAI20003", "name": "Abisha Susan Alichan"}, {"id": "2026EMAI20004", "name": "Adhishree J"}, {"id": "2026EMAI20005", "name": "Advaith Balram Nair"}, {"id": "2026EMAI20006", "name": "Aishwarya Nair"}, {"id": "2026EMAI20044", "name": "Aiswarya Kumar Senapati"}, {"id": "2026EMAI20007", "name": "Aivin Alex Philip"}, {"id": "2026EMAI20045", "name": "Andre Paul Veyccan"}, {"id": "2026EMAI20046", "name": "Anjana Haridas"}, {"id": "2026EMAI20008", "name": "Anusha Channaboina"}, {"id": "2026EMAI20047", "name": "Aswin Venu M"}, {"id": "2026EMAI10020", "name": "Athira B S"}, {"id": "2026EMAI20048", "name": "Avanish Sandilya"}, {"id": "2026EMAI20009", "name": "Beena C Jacob"}, {"id": "2026EMAI20049", "name": "Bhadra S"}, {"id": "2026EMAI20010", "name": "Bijoy J Raj"}, {"id": "2026EMAI20011", "name": "Binoy J Raj"}, {"id": "2026EMAI20050", "name": "Colin Michael"}, {"id": "2026EMAI20051", "name": "David Jose"}, {"id": "2026EMAI20012", "name": "Devi chandana D"}, {"id": "2026EMAI20052", "name": "Devika S"}, {"id": "2026EMAI20013", "name": "Dhuraimurugan N"}, {"id": "2026EMAI20053", "name": "Divya M Alex"}, {"id": "2026EMAI20014", "name": "Diya M"}, {"id": "2026EMAI20015", "name": "Ede Naga Anilkumar"}, {"id": "2026EMAI20054", "name": "Emmanuel Jobin"}, {"id": "2026EMAI20016", "name": "Gopika Murali"}, {"id": "2026EMAI20017", "name": "Harigovind P"}, {"id": "2026EMAI20055", "name": "Harsanth D"}, {"id": "2026EMAI20056", "name": "Jackson Solomon David"}, {"id": "2026EMAI20018", "name": "Jagath Abhijit"}, {"id": "2026EMAI20019", "name": "Jeena M G"}, {"id": "2026EMAI20020", "name": "Jibina Babu"}, {"id": "2026EMAI20057", "name": "Jim Joyal Mattam"}, {"id": "2026EMAI20021", "name": "Jobin Philip James"}, {"id": "2026EMAI20058", "name": "Jyothish V"}, {"id": "2026EMAI20059", "name": "K R Sidharth"}, {"id": "2026EMAI20060", "name": "K Sai Shashank"}, {"id": "2026EMAI20022", "name": "Keerthana Babu"}, {"id": "2026EMAI20061", "name": "Kelin Benny"}, {"id": "2026EMAI20023", "name": "Kokila Rajigan"}, {"id": "2026EMAI20024", "name": "Lakshmi Sreejith"}, {"id": "2026EMAI20025", "name": "Liji Jose"}, {"id": "2026EMAI20026", "name": "Manikumar T"}, {"id": "2026EMAI20062", "name": "Manimaran A"}, {"id": "2026EMAI20027", "name": "Maria George Chackalackal"}, {"id": "2026EMAI20063", "name": "Meenu T Nadarajan"}, {"id": "2026EMAI10039", "name": "Merrin Mary Abraham"}, {"id": "2026EMAI20064", "name": "Muhamed Yasin Manath Abdulkalam"}, {"id": "2026EMAI20028", "name": "Neha Ann Christopher"}, {"id": "2026EMAI20029", "name": "Nicole Sunil"}, {"id": "2026EMAI20030", "name": "Parvathy Nidhin"}, {"id": "2026EMAI20031", "name": "Piyas Banerjee"}, {"id": "2026EMAI20032", "name": "R Sanjitaa"}, {"id": "2026EMAI20033", "name": "Rachana K"}, {"id": "2026EMAI20034", "name": "Rajesh R"}, {"id": "2026EMAI20065", "name": "Rohin Thomas Kurian"}, {"id": "2026EMAI20035", "name": "S Ghanshyam Padnekar"}, {"id": "2026EMAI20036", "name": "Sahir S M"}, {"id": "2026EMAI20037", "name": "Sereen Sabu"}, {"id": "2026EMAI20038", "name": "Shilpa S Nair"}, {"id": "2026EMAI20039", "name": "Sidharth Deleep"}, {"id": "2026EMAI20066", "name": "Surjith D Sasi"}, {"id": "2026EMAI20067", "name": "Thavamani Raja S"}, {"id": "2026EMAI20040", "name": "Thomas Antony"}, {"id": "2026EMAI20041", "name": "Vignesh Raja"}, {"id": "2022MCS110021", "name": "Vijay K A"}, {"id": "2026EMAI20068", "name": "Vinesh Babu T P"}, {"id": "2026EMAI20069", "name": "Vishnu Narayanan M"}, {"id": "2026EMAI20042", "name": "Vyshnavi V"}, {"id": "2026EMAI20043", "name": "Yuvapriya"}];
 // ==================
 const $ = id => document.getElementById(id);
 const norm = s => String(s||'').toLowerCase().replace(/\s+/g,' ').trim();
+const BY = Object.fromEntries(ROSTER.map(r=>[norm(r.id),r]));
 let teams = [];
 
+function fill(sel, items, ph, val, lab){
+  const cur = sel.value;
+  sel.innerHTML = '';
+  const p = document.createElement('option'); p.value=''; p.textContent=ph; sel.appendChild(p);
+  items.forEach(i=>{const o=document.createElement('option');o.value=val(i);o.textContent=lab(i);sel.appendChild(o);});
+  sel.value = items.some(i=>val(i)===cur) ? cur : '';
+}
+function refresh(){
+  const takenIds = new Set(teams.flatMap(t=>(t.ids||[]).map(norm)));
+  const takenT = new Set(teams.map(t=>norm(t.title)));
+  const topics = TOPICS.filter(t=>!takenT.has(norm(t)));
+  fill($('title'), topics, topics.length?'— Select a topic —':'— All topics are taken —', t=>t, t=>t);
+  const sels = [...document.querySelectorAll('#members select')];
+  sels.forEach(s=>{
+    const others = new Set(sels.filter(x=>x!==s).map(x=>norm(x.value)).filter(Boolean));
+    fill(s, ROSTER.filter(r=>!takenIds.has(norm(r.id)) && !others.has(norm(r.id))),
+         '— Select student —', r=>r.id, r=>r.name+' ('+r.id+')');
+  });
+  $('add').disabled = sels.length>=MAX;
+  $('th').textContent = topics.length+' of '+TOPICS.length+' topics still available';
+  $('mh').textContent = ROSTER.filter(r=>!takenIds.has(norm(r.id))).length+' students not yet in a team';
+}
 function addRow(){
   if($('members').children.length>=MAX) return;
   const d=document.createElement('div');d.className='row';
-  d.innerHTML='<input class="n" placeholder="Full name"><input class="i" placeholder="Roll no. / ID"><button type="button" title="Remove">✕</button>';
-  d.querySelector('button').onclick=()=>{if($('members').children.length>MIN){d.remove();validate();}};
-  d.querySelectorAll('input').forEach(i=>i.oninput=validate);
-  $('members').appendChild(d);validate();
-}
-function vals(){return [...$('members').children].map(r=>({name:r.querySelector('.n').value.trim(),id:r.querySelector('.i').value.trim()}));}
-
-function validate(){
-  const t=norm($('title').value);
-  const th=$('th');
-  if(!t){th.textContent='';}
-  else if(teams.some(x=>norm(x.title)===t)){th.textContent='✗ This title is already taken.';th.className='hint bad';}
-  else{th.textContent='✓ Title available.';th.className='hint good';}
-  const taken=[];const seen=new Set();let dup=false;
-  vals().forEach(m=>{const k=norm(m.id);if(!k)return;
-    if(seen.has(k))dup=true;seen.add(k);
-    const f=teams.find(x=>(x.ids||[]).includes(k));if(f)taken.push(`${m.name||m.id} (in “${f.title}”)`);});
-  $('mh').textContent=dup?'✗ Same ID entered twice.':taken.length?'✗ Already registered: '+taken.join(', '):'';
-  $('mh').className='hint bad';
-  $('add').disabled=$('members').children.length>=MAX;
+  d.innerHTML='<select></select><button type="button" title="Remove">✕</button>';
+  d.querySelector('button').onclick=()=>{if($('members').children.length>MIN){d.remove();refresh();}};
+  d.querySelector('select').onchange=refresh;
+  $('members').appendChild(d);refresh();
 }
 function render(){
   $('cnt').textContent=teams.length;
   $('list').innerHTML=teams.length?'':'<span class="hint">No teams yet.</span>';
   teams.forEach(t=>{const d=document.createElement('div');d.className='t';
     d.textContent=t.title;const s=document.createElement('small');s.textContent=t.names.join(', ');d.appendChild(s);$('list').appendChild(d);});
-  validate();
+  refresh();
 }
 async function load(){
-  if(!ENDPOINT){$('msg').textContent='Demo mode: set ENDPOINT in index.html to save real responses.';return render();}
-  try{const r=await fetch(ENDPOINT);const j=await r.json();teams=j.teams||[];}catch(e){$('list').textContent='Could not load teams.';}
+  if(!ENDPOINT){$('msg').textContent='Demo mode: set ENDPOINT to save real responses.';return render();}
+  try{const r=await fetch(ENDPOINT);const j=await r.json();teams=j.teams||[];
+    if(j.min!==MIN){$('msg').textContent='⚠ Backend is outdated. Redeploy Code.gs as a New version.';$('msg').className='bad';}
+  }catch(e){$('list').textContent='Could not load teams.';}
   render();
 }
 $('go').onclick=async()=>{
   const msg=$('msg');msg.className='';msg.textContent='';
-  const title=$('title').value.trim(),members=vals();
-  if(!title||members.some(m=>!m.name||!m.id)){msg.textContent='Fill in the title and every member.';msg.className='bad';return;}
-  if($('th').classList.contains('bad')||$('mh').textContent){msg.textContent='Fix the highlighted problems first.';msg.className='bad';return;}
+  const title=$('title').value;
+  const ids=[...document.querySelectorAll('#members select')].map(s=>s.value);
+  if(!title){msg.textContent='Please select a topic.';msg.className='bad';return;}
+  if(ids.some(i=>!i)){msg.textContent='Select a student in every member row (or remove the empty row).';msg.className='bad';return;}
+  const members=ids.map(i=>({name:BY[norm(i)].name,id:i}));
   $('go').disabled=true;
   try{
-    if(!ENDPOINT){teams.push({title,names:members.map(m=>m.name),ids:members.map(m=>norm(m.id))});msg.textContent='Saved (demo only).';msg.className='good';render();}
-    else{
-      const r=await fetch(ENDPOINT,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({title,members})});
-      const txt=await r.text();let j;
-      try{j=JSON.parse(txt);}catch(_){throw new Error('Backend did not return JSON. Check deployment access is "Anyone" and you used the /exec URL.');}
-      if(j.ok){msg.textContent='🎉 Team registered!';msg.className='good';$('title').value='';$('members').innerHTML='';for(let i=0;i<MIN;i++)addRow();}
-      else{msg.textContent=j.error;msg.className='bad';}
-      await load();
-    }
-  }catch(e){msg.textContent=(e&&e.message&&!/fetch/i.test(e.message)?e.message:'Could not reach the backend (blocked, wrong URL or access not set to Anyone). Details: '+e);msg.className='bad';}
+    const r=await fetch(ENDPOINT,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({title,members})});
+    const txt=await r.text();let j;
+    try{j=JSON.parse(txt);}catch(_){throw new Error('Backend did not return JSON. Check deployment access is "Anyone" and you used the /exec URL.');}
+    if(j.ok){msg.textContent='🎉 Team registered!';msg.className='good';$('members').innerHTML='';for(let i=0;i<MIN;i++)addRow();}
+    else{msg.textContent=j.error;msg.className='bad';}
+    await load();
+  }catch(e){msg.textContent=(e&&e.message&&!/fetch/i.test(e.message)?e.message:'Could not reach the backend. Details: '+e);msg.className='bad';}
   $('go').disabled=false;
 };
-$('title').oninput=validate;$('add').onclick=addRow;
+$('add').onclick=addRow;
 for(let i=0;i<MIN;i++)addRow();
 load();
 </script></main></body></html>
